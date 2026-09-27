@@ -165,7 +165,72 @@ namespace Locators_for_Web_Elements
 
             Thread.Sleep(8000);
         }
-        
+
+        [Test]
+        [TestCase("BLOCKCHAIN")]
+        [TestCase("Cloud")]
+        [TestCase("Automation")]
+        public void GlobalSearch_ValidKeyword_SearchResultsContainKeyword(string searchKeyword)
+        {
+            this._driver.Navigate().GoToUrl(this.WebsiteUrl);
+
+            IWebElement searchButton = this._driver.FindElement(
+                By.CssSelector("button.header-search__button"));
+
+            searchButton.Click();
+
+            IWebElement searchInput = this._wait.Until(
+    driver =>
+    {
+        IWebElement element = driver.FindElement(
+            By.Id("new_form_search"));
+
+        return element.Displayed && element.Enabled
+            ? element
+            : null;
+    });
+
+            searchInput.Clear();
+            searchInput.SendKeys(searchKeyword);
+
+             IWebElement acceptCookies = this._wait.Until(
+                driver => driver.FindElement(By.Id("onetrust-accept-btn-handler")));
+
+            acceptCookies.Click();
+
+            IWebElement findButton = this._driver.FindElement(
+                By.CssSelector("button.custom-search-button"));
+
+            findButton.Click();   
+            
+            Thread.Sleep(5000);         
+
+            this._wait.Until(driver => driver.FindElement(
+                By.CssSelector("article.search-results__item")));
+
+            //a.search-results__title-link - by the task the search string should be
+            //only in the title (h3), but indeed the string is also in the search-results__description
+            //and even in the contetnt of the link
+
+
+            // Get all result links
+            IReadOnlyCollection<IWebElement> links = this._driver.FindElements(
+                By.CssSelector("article.search-results__item"));
+
+            foreach (IWebElement link in links)
+            {
+                TestContext.WriteLine($"RESULT: '{link.Text}'");
+            }
+
+            bool allLinksContainKeyword = links.All(link => link.Text.Contains(
+                searchKeyword,
+                StringComparison.OrdinalIgnoreCase));
+
+            Assert.That(allLinksContainKeyword, Is.True);
+
+           // Thread.Sleep(5000);
+        }
+
 
         [TearDown]
         public void TearDown()
